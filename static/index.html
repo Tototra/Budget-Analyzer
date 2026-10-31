@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Analyzer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #F5F6F8;
+  color: #1A1D23;
+  min-height: 100vh;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 0 2rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -.02em;
+}
+.header-logo svg { opacity: .9; }
+.header-badge {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 6px;
+  padding: .3rem .7rem;
+  color: rgba(255,255,255,.7);
+  font-size: .75rem;
+  font-weight: 500;
+}
+.header-badge .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #34D399;
+}
+
+/* ── Main content ────────────────────────────────────── */
+.main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+/* ── Upload zone ─────────────────────────────────────── */
+.upload-section {
+  animation: fadeSlideUp .5s ease both;
+}
+.upload-zone {
+  border: 2px dashed #D1D5DB;
+  border-radius: 16px;
+  padding: 3.5rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .25s, background .25s, transform .15s;
+  background: #fff;
+}
+.upload-zone:hover {
+  border-color: #93A3B8;
+  background: #FAFBFC;
+}
+.upload-zone.drag-over {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+  transform: scale(1.005);
+}
+.upload-zone.compact {
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+}
+.upload-zone.compact .upload-icon { width: 32px; height: 32px; }
+.upload-zone.compact .upload-text h2 { font-size: .95rem; }
+.upload-zone.compact .upload-text p { display: none; }
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1rem;
+  color: #9CA3AF;
+  transition: color .25s;
+}
+.upload-zone:hover .upload-icon,
+.upload-zone.drag-over .upload-icon { color: #3B82F6; }
+.upload-text h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: .3rem;
+  color: #1A1D23;
+}
+.upload-text p {
+  color: #6B7280;
+  font-size: .88rem;
+}
+.upload-input { display: none; }
+
+/* ── File chips ──────────────────────────────────────── */
+.file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: 1rem;
+}
+.file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: #F3F4F6;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: .35rem .6rem .35rem .5rem;
+  font-size: .82rem;
+  font-weight: 500;
+  color: #374151;
+  animation: chipIn .25s ease both;
+}
+.file-chip svg { width: 16px; height: 16px; color: #6B7280; flex-shrink: 0; }
+.file-chip .remove {
+  width: 16px; height: 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #9CA3AF;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: color .15s;
+}
+.file-chip .remove:hover { color: #EF4444; }
+
+/* ── Analyze button ──────────────────────────────────── */
+.actions {
+  display: flex;
+  gap: .75rem;
+  margin-top: 1.2rem;
+  flex-wrap: wrap;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .65rem 1.4rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: .9rem;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: transform .12s, box-shadow .2s, opacity .2s;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn-primary {
+  background: #1a1a2e;
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.btn-primary:hover { box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+.btn-secondary {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+}
+.btn-secondary:hover { border-color: #9CA3AF; }
+.btn svg { width: 18px; height: 18px; }
+
+/* ── Loading state ───────────────────────────────────── */
+.loading-overlay {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  animation: fadeIn .3s ease;
+}
+.loading-overlay.active { display: flex; }
+.spinner-ring {
+  width: 56px; height: 56px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #3B82F6;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+.loading-text {
+  margin-top: 1.2rem;
+  font-weight: 600;
+  font-size: .95rem;
+  color: #374151;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Results ─────────────────────────────────────────── */
+.results {
+  display: none;
+  animation: fadeSlideUp .5s ease both;
+}
+.results.active { display: block; }
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.results-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+/* ── KPI row ─────────────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+}
+.kpi-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.2rem 1.3rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  border: 1px solid #F0F0F3;
+  transition: transform .2s, box-shadow .2s;
+  animation: fadeSlideUp .4s ease both;
+}
+.kpi-card:nth-child(2) { animation-delay: .05s; }
+.kpi-card:nth-child(3) { animation-delay: .1s; }
+.kpi-card:nth-child(4) { animation-delay: .15s; }
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.06);
+}
+.kpi-label {
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #6B7280;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: .5rem;
+}
+.kpi-label .indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.kpi-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+.kpi-value.red { color: #DC2626; }
+.kpi-value.green { color: #059669; }
+.kpi-value.neutral { color: #1A1D23; }
+
+/* ── Tabs ────────────────────────────────────────────── */
+.tabs-bar {
+  display: flex;
+  border-bottom: 1px solid #E5E7EB;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  padding: .7rem 1.2rem;
+  font-family: 'Inter', sans-serif;
+  font-size: .9rem;
+  font-weight: 500;
+  color: #6B7280;
+  cursor: pointer;
+  transition: color .2s;
+  position: relative;
+}
+.tab-btn:hover { color: #1A1D23; }
+.tab-btn.active { color: #1A1D23; font-weight: 600; }
+.tab-indicator {
+  position: absolute;
+  bottom: -1px;
+  height: 2px;
+  background: #1a1a2e;
+  border-radius: 1px;
+  transition: left .3s cubic-bezier(.4,0,.2,1), width .3s cubic-bezier(.4,0,.2,1);
+}
+.tab-panel { display: none; animation: fadeIn .3s ease; }
+.tab-panel.active { display: block; }
+
+/* ── Category tab ────────────────────────────────────── */
+.cat-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 700px) { .cat-layout { grid-template-columns: 1fr; } }
+.chart-wrap {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #F0F0F3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chart-wrap canvas { max-width: 240px; max-height: 240px; }
+.cat-list { display: flex; flex-direction: column; gap: .6rem; }
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .55rem 0;
+  animation: fadeSlideUp .35s ease both;
+}
+.cat-row:nth-child(2) { animation-delay: .04s; }
+.cat-row:nth-child(3) { animation-delay: .08s; }
+.cat-row:nth-child(4) { animation-delay: .12s; }
+.cat-row:nth-child(5) { animation-delay: .16s; }
+.cat-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.cat-name {
+  font-weight: 500;
+  font-size: .88rem;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cat-amount {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cat-bar-wrap {
+  width: 80px;
+  height: 6px;
+  background: #F3F4F6;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.cat-bar {
+  height: 100%;
+  border-radius: 3px;
+  width: 0;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+.cat-pct {
+  font-size: .78rem;
+  color: #6B7280;
+  width: 42px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Detail tab (accordion) ──────────────────────────── */
+.accordion { display: flex; flex-direction: column; gap: .5rem; }
+.acc-item {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #F0F0F3;
+  overflow: hidden;
+  animation: fadeSlideUp .35s ease both;
+}
+.acc-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .85rem 1.1rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+}
+.acc-header:hover { background: #FAFBFC; }
+.acc-bar {
+  width: 4px;
+  height: 28px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.acc-cat-name {
+  font-weight: 600;
+  font-size: .9rem;
+  flex: 1;
+}
+.acc-meta {
+  font-size: .82rem;
+  color: #6B7280;
+  font-variant-numeric: tabular-nums;
+}
+.acc-total {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+}
+.acc-chevron {
+  width: 18px;
+  height: 18px;
+  color: #9CA3AF;
+  transition: transform .25s ease;
+  flex-shrink: 0;
+}
+.acc-item.open .acc-chevron { transform: rotate(180deg); }
+.acc-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .35s cubic-bezier(.4,0,.2,1);
+}
+.acc-item.open .acc-body { max-height: 600px; }
+.acc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .85rem;
+}
+.acc-table thead th {
+  text-align: left;
+  padding: .55rem 1.1rem;
+  font-weight: 600;
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #6B7280;
+  background: #FAFBFC;
+  border-top: 1px solid #F0F0F3;
+}
+.acc-table tbody td {
+  padding: .5rem 1.1rem;
+  border-top: 1px solid #F7F7F9;
+  vertical-align: middle;
+}
+.acc-table tbody tr:hover { background: #FAFBFC; }
+.amount-cell { font-variant-numeric: tabular-nums; font-weight: 500; }
+.amount-cell.neg { color: #DC2626; }
+.amount-cell.pos { color: #059669; }
+
+/* ── Month tab ───────────────────────────────────────── */
+.month-chart-wrap {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #F0F0F3;
+  margin-bottom: 1.5rem;
+}
+.month-chart-wrap canvas { width: 100%; max-height: 340px; }
+.month-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #F0F0F3;
+}
+.month-table th {
+  text-align: left;
+  padding: .6rem .8rem;
+  font-weight: 600;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #6B7280;
+  background: #FAFBFC;
+  border-bottom: 1px solid #F0F0F3;
+}
+.month-table td {
+  padding: .5rem .8rem;
+  border-bottom: 1px solid #F7F7F9;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Export bar ───────────────────────────────────────── */
+.export-bar {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── Animations ──────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+@keyframes chipIn {
+  from { opacity: 0; transform: scale(.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 640px) {
+  .main { padding: 1.5rem 1rem 3rem; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .header { padding: 0 1rem; }
+  .month-table { font-size: .72rem; overflow-x: auto; display: block; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 17l3-3h2l2-5 3 9 3-13 2 7h5"/>
+    </svg>
+    Budget Analyzer
+  </div>
+  <div class="header-badge">
+    <span class="dot"></span>
+    100 % local
+  </div>
+</header>
+
+<main class="main">
+  <!-- Upload section -->
+  <div class="upload-section" id="uploadSection">
+    <div class="upload-zone" id="dropZone">
+      <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="12" y1="18" x2="12" y2="12"/>
+        <polyline points="9 15 12 12 15 15"/>
+      </svg>
+      <div class="upload-text">
+        <h2>Glisse tes relev&eacute;s ici ou clique pour les s&eacute;lectionner</h2>
+        <p>CSV, Excel (.xlsx) ou PDF &mdash; autant de fichiers que tu veux</p>
+      </div>
+      <input type="file" class="upload-input" id="fileInput" multiple accept=".csv,.xlsx,.xls,.pdf">
+    </div>
+    <div class="file-list" id="fileList"></div>
+    <div class="actions" id="actions" style="display:none;">
+      <button class="btn btn-primary" id="analyzeBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Analyser
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner-ring"></div>
+    <div class="loading-text">Analyse en cours...</div>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="results-header">
+      <div class="results-title">Vue d'ensemble</div>
+      <button class="btn btn-secondary" id="resetBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+        </svg>
+        Nouveau
+      </button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row" id="kpiRow"></div>
+
+    <!-- Tabs -->
+    <div class="tabs-bar" id="tabsBar">
+      <button class="tab-btn active" data-tab="cat">Par cat&eacute;gorie</button>
+      <button class="tab-btn" data-tab="detail">D&eacute;tail</button>
+      <button class="tab-btn" data-tab="mois">Par mois</button>
+      <div class="tab-indicator" id="tabIndicator"></div>
+    </div>
+
+    <div class="tab-panel active" id="panel-cat">
+      <div class="cat-layout">
+        <div class="chart-wrap"><canvas id="donutChart"></canvas></div>
+        <div class="cat-list" id="catList"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="panel-detail">
+      <div class="accordion" id="accordion"></div>
+    </div>
+
+    <div class="tab-panel" id="panel-mois">
+      <div class="month-chart-wrap"><canvas id="barChart"></canvas></div>
+      <div id="monthTableWrap"></div>
+    </div>
+
+    <!-- Export -->
+    <div class="export-bar">
+      <button class="btn btn-primary" id="exportBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        T&eacute;l&eacute;charger le fichier Excel
+      </button>
+    </div>
+  </div>
+</main>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ── State ───────────────────────────────────────── */
+  let files = [];
+  let chartDonut = null;
+  let chartBar = null;
+
+  /* ── DOM refs ────────────────────────────────────── */
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const actions = document.getElementById('actions');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const uploadSection = document.getElementById('uploadSection');
+  const results = document.getElementById('results');
+  const resetBtn = document.getElementById('resetBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const tabsBar = document.getElementById('tabsBar');
+  const tabIndicator = document.getElementById('tabIndicator');
+
+  /* ── Helpers ─────────────────────────────────────── */
+  function fmtMoney(n) {
+    const abs = Math.abs(n).toFixed(2);
+    const [int, dec] = abs.split('.');
+    const spaced = int.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return (n < 0 ? '-' : '') + spaced + ',' + dec + ' €';
+  }
+
+  function fileIcon() {
+    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  }
+
+  function chevronIcon() {
+    return '<svg class="acc-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  }
+
+  /* ── Count-up animation ──────────────────────────── */
+  function animateValue(el, target, duration) {
+    const start = performance.now();
+    const isInt = Number.isInteger(target);
+    function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      const current = target * ease;
+      if (isInt) {
+        el.textContent = Math.round(current).toLocaleString('fr-FR');
+      } else {
+        el.textContent = fmtMoney(current);
+      }
+      if (t < 1) requestAnimationFrame(tick);
+      else {
+        if (isInt) el.textContent = target.toLocaleString('fr-FR');
+        else el.textContent = fmtMoney(target);
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ── Tab indicator ───────────────────────────────── */
+  function moveIndicator(btn) {
+    tabIndicator.style.left = btn.offsetLeft + 'px';
+    tabIndicator.style.width = btn.offsetWidth + 'px';
+  }
+  function initTabs() {
+    const active = tabsBar.querySelector('.tab-btn.active');
+    if (active) requestAnimationFrame(() => moveIndicator(active));
+  }
+
+  /* ── Drag & drop ─────────────────────────────────── */
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    addFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
+
+  function addFiles(newFiles) {
+    for (const f of newFiles) {
+      if (!files.some(x => x.name === f.name && x.size === f.size)) files.push(f);
+    }
+    renderFileList();
+  }
+
+  function removeFile(idx) {
+    files.splice(idx, 1);
+    renderFileList();
+  }
+
+  function renderFileList() {
+    fileList.innerHTML = '';
+    files.forEach((f, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'file-chip';
+      chip.innerHTML = fileIcon() + '<span>' + f.name + '</span><button class="remove" title="Retirer">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+      chip.querySelector('.remove').addEventListener('click', (e) => { e.stopPropagation(); removeFile(i); });
+      fileList.appendChild(chip);
+    });
+    actions.style.display = files.length > 0 ? 'flex' : 'none';
+  }
+
+  /* ── Analyze ─────────────────────────────────────── */
+  analyzeBtn.addEventListener('click', async () => {
+    if (files.length === 0) return;
+    analyzeBtn.disabled = true;
+    uploadSection.style.display = 'none';
+    loadingOverlay.classList.add('active');
+
+    const fd = new FormData();
+    files.forEach(f => fd.append('files', f));
+
+    try {
+      const res = await fetch('/api/analyze', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+      loadingOverlay.classList.remove('active');
+      renderResults(data);
+    } catch (err) {
+      loadingOverlay.classList.remove('active');
+      uploadSection.style.display = '';
+      analyzeBtn.disabled = false;
+      window.alert('Erreur : ' + err.message);
+    }
+  });
+
+  /* ── Reset ───────────────────────────────────────── */
+  resetBtn.addEventListener('click', () => {
+    results.classList.remove('active');
+    uploadSection.style.display = '';
+    dropZone.classList.remove('compact');
+    files = [];
+    renderFileList();
+    analyzeBtn.disabled = false;
+    if (chartDonut) { chartDonut.destroy(); chartDonut = null; }
+    if (chartBar) { chartBar.destroy(); chartBar = null; }
+  });
+
+  /* ── Export ──────────────────────────────────────── */
+  exportBtn.addEventListener('click', async () => {
+    exportBtn.disabled = true;
+    const fd = new FormData();
+    files.forEach(f => fd.append('files', f));
+    try {
+      const res = await fetch('/api/export', { method: 'POST', body: fd });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'budget_analyzer.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+    }
+    exportBtn.disabled = false;
+  });
+
+  /* ── Render results ──────────────────────────────── */
+  function renderResults(data) {
+    results.classList.add('active');
+
+    // KPIs
+    const kpi = data.kpi;
+    const kpiRow = document.getElementById('kpiRow');
+    kpiRow.innerHTML = '';
+    const kpis = [
+      { label: 'Total dépensé', value: kpi.total_depenses, cls: 'red', color: '#DC2626' },
+      { label: 'Total revenus', value: kpi.total_revenus, cls: 'green', color: '#059669' },
+      { label: 'Solde', value: kpi.solde, cls: kpi.solde >= 0 ? 'green' : 'red', color: kpi.solde >= 0 ? '#059669' : '#DC2626' },
+      { label: 'Transactions', value: kpi.nb_transactions, cls: 'neutral', color: '#6B7280', isInt: true },
+    ];
+    kpis.forEach(k => {
+      const card = document.createElement('div');
+      card.className = 'kpi-card';
+      card.innerHTML =
+        '<div class="kpi-label"><span class="indicator" style="background:' + k.color + '"></span>' + k.label + '</div>' +
+        '<div class="kpi-value ' + k.cls + '" data-target="' + k.value + '">0</div>';
+      kpiRow.appendChild(card);
+      const valEl = card.querySelector('.kpi-value');
+      setTimeout(() => animateValue(valEl, k.value, 700), 100);
+    });
+
+    // Category tab
+    renderCategoryTab(data.synthese);
+
+    // Detail tab
+    renderDetailTab(data.groupes);
+
+    // Month tab
+    renderMonthTab(data.mois);
+
+    // Init tabs
+    initTabs();
+  }
+
+  /* ── Category tab ────────────────────────────────── */
+  function renderCategoryTab(synthese) {
+    const catList = document.getElementById('catList');
+    catList.innerHTML = '';
+
+    // Donut
+    if (chartDonut) chartDonut.destroy();
+    const ctx = document.getElementById('donutChart').getContext('2d');
+    chartDonut = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: synthese.map(s => s.categorie),
+        datasets: [{
+          data: synthese.map(s => s.total),
+          backgroundColor: synthese.map(s => s.color),
+          borderWidth: 0,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        cutout: '68%',
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ctx.label + ' : ' + fmtMoney(ctx.parsed);
+              }
+            }
+          }
+        },
+        animation: { animateRotate: true, duration: 800 }
+      }
+    });
+
+    // List
+    synthese.forEach((s, i) => {
+      const row = document.createElement('div');
+      row.className = 'cat-row';
+      row.style.animationDelay = (i * 0.04) + 's';
+      row.innerHTML =
+        '<span class="cat-dot" style="background:' + s.color + '"></span>' +
+        '<span class="cat-name">' + s.categorie + '</span>' +
+        '<span class="cat-amount">' + fmtMoney(s.total) + '</span>' +
+        '<div class="cat-bar-wrap"><div class="cat-bar" style="background:' + s.color + '" data-width="' + s.pct + '"></div></div>' +
+        '<span class="cat-pct">' + s.pct.toFixed(1) + '%</span>';
+      catList.appendChild(row);
+    });
+
+    // Animate bars
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        catList.querySelectorAll('.cat-bar').forEach(bar => {
+          bar.style.width = bar.dataset.width + '%';
+        });
+      }, 150);
+    });
+  }
+
+  /* ── Detail tab ──────────────────────────────────── */
+  function renderDetailTab(groupes) {
+    const accordion = document.getElementById('accordion');
+    accordion.innerHTML = '';
+    const entries = Object.entries(groupes).sort((a, b) => {
+      return Math.abs(b[1].total) - Math.abs(a[1].total);
+    });
+    entries.forEach(([cat, g], idx) => {
+      const item = document.createElement('div');
+      item.className = 'acc-item';
+      item.style.animationDelay = (idx * 0.04) + 's';
+      const sign = g.total >= 0 ? '+' : '';
+      item.innerHTML =
+        '<div class="acc-header">' +
+          '<span class="acc-bar" style="background:' + g.color + '"></span>' +
+          '<span class="acc-cat-name">' + cat + '</span>' +
+          '<span class="acc-meta">' + g.count + ' op.</span>' +
+          '<span class="acc-total">' + sign + fmtMoney(g.total) + '</span>' +
+          chevronIcon() +
+        '</div>' +
+        '<div class="acc-body">' +
+          '<table class="acc-table"><thead><tr><th>Date</th><th>Libellé</th><th style="text-align:right">Montant</th></tr></thead><tbody>' +
+          g.transactions.map(t => {
+            const cls = t.Montant < 0 ? 'neg' : 'pos';
+            return '<tr><td>' + t.Date + '</td><td>' + t['Libellé'] + '</td><td class="amount-cell ' + cls + '" style="text-align:right">' + fmtMoney(t.Montant) + '</td></tr>';
+          }).join('') +
+          '</tbody></table>' +
+        '</div>';
+      item.querySelector('.acc-header').addEventListener('click', () => {
+        item.classList.toggle('open');
+      });
+      accordion.appendChild(item);
+    });
+  }
+
+  /* ── Month tab ───────────────────────────────────── */
+  function renderMonthTab(mois) {
+    if (chartBar) chartBar.destroy();
+    const ctx = document.getElementById('barChart').getContext('2d');
+    chartBar = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: mois.labels,
+        datasets: mois.datasets.map(ds => ({
+          label: ds.label,
+          data: ds.data,
+          backgroundColor: ds.color,
+          borderWidth: 0,
+          borderRadius: 3,
+        }))
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            stacked: true,
+            grid: { display: false },
+            ticks: { font: { size: 11, family: 'Inter' } }
+          },
+          y: {
+            stacked: true,
+            grid: { color: '#F0F0F3' },
+            ticks: {
+              font: { size: 11, family: 'Inter' },
+              callback: v => fmtMoney(v)
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 10, padding: 16, font: { size: 11, family: 'Inter' } }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.dataset.label + ' : ' + fmtMoney(ctx.parsed.y)
+            }
+          }
+        },
+        animation: { duration: 800 }
+      }
+    });
+
+    // Table
+    const wrap = document.getElementById('monthTableWrap');
+    if (mois.labels.length === 0 || mois.datasets.length === 0) { wrap.innerHTML = ''; return; }
+    const cats = mois.datasets.map(d => d.label);
+    let html = '<table class="month-table"><thead><tr><th>Mois</th>';
+    cats.forEach(c => { html += '<th style="text-align:right">' + c + '</th>'; });
+    html += '</tr></thead><tbody>';
+    mois.labels.forEach((label, i) => {
+      html += '<tr><td style="font-weight:500">' + label + '</td>';
+      mois.datasets.forEach(ds => {
+        const v = ds.data[i] || 0;
+        html += '<td style="text-align:right;font-variant-numeric:tabular-nums">' + (v > 0 ? fmtMoney(v) : '-') + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  }
+
+  /* ── Tab switching ───────────────────────────────── */
+  tabsBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    tabsBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    moveIndicator(btn);
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+
+    // Re-animate category bars on switch
+    if (btn.dataset.tab === 'cat') {
+      document.querySelectorAll('.cat-bar').forEach(bar => {
+        bar.style.width = '0';
+        setTimeout(() => { bar.style.width = bar.dataset.width + '%'; }, 50);
+      });
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    const active = tabsBar.querySelector('.tab-btn.active');
+    if (active) moveIndicator(active);
+  });
+
+})();
+</script>
+</body>
+</html>

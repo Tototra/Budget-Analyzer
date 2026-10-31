@@ -1,0 +1,9 @@
+venv/
+dist/
+build_tmp/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+*.spec
+*.xlsx
