@@ -4,143 +4,125 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            artifact_name: BudgetAnalyzer-macOS
-            build_cmd: |
-              pyinstaller \
-                --name BudgetAnalyzer \
-                --windowed \
-                --add-data "static:static" \
-                --add-data "rules.py:." \
-                --add-data "ollama_classify.py:." \
-                --add-data "parsers.py:." \
-                --add-data "excel_export.py:." \
-                --hidden-import flask \
-                --hidden-import pandas \
-                --hidden-import openpyxl \
-                --hidden-import openpyxl.chart \
-                --hidden-import openpyxl.chart.label \
-                --hidden-import openpyxl.chart.marker \
-                --hidden-import openpyxl.chart.shapes \
-                --hidden-import openpyxl.styles \
-                --hidden-import openpyxl.utils \
-                --hidden-import pdfplumber \
-                --hidden-import requests \
-                --exclude-module tkinter \
-                --exclude-module matplotlib \
-                --exclude-module scipy \
-                --distpath dist \
-                --clean -y \
-                server.py
-              cd dist
-              ditto -c -k --sequesterRsrc --keepParent BudgetAnalyzer.app BudgetAnalyzer-macOS.zip
-
-          - os: windows-latest
-            artifact_name: BudgetAnalyzer-Windows
-            build_cmd: |
-              pyinstaller `
-                --name BudgetAnalyzer `
-                --windowed `
-                --add-data "static;static" `
-                --add-data "rules.py;." `
-                --add-data "ollama_classify.py;." `
-                --add-data "parsers.py;." `
-                --add-data "excel_export.py;." `
-                --hidden-import flask `
-                --hidden-import pandas `
-                --hidden-import openpyxl `
-                --hidden-import openpyxl.chart `
-                --hidden-import openpyxl.chart.label `
-                --hidden-import openpyxl.chart.marker `
-                --hidden-import openpyxl.chart.shapes `
-                --hidden-import openpyxl.styles `
-                --hidden-import openpyxl.utils `
-                --hidden-import pdfplumber `
-                --hidden-import requests `
-                --exclude-module tkinter `
-                --exclude-module matplotlib `
-                --exclude-module scipy `
-                --distpath dist `
-                --clean -y `
-                server.py
-              Compress-Archive -Path dist\BudgetAnalyzer -DestinationPath dist\BudgetAnalyzer-Windows.zip
-
-          - os: ubuntu-latest
-            artifact_name: BudgetAnalyzer-Linux
-            build_cmd: |
-              pyinstaller \
-                --name BudgetAnalyzer \
-                --add-data "static:static" \
-                --add-data "rules.py:." \
-                --add-data "ollama_classify.py:." \
-                --add-data "parsers.py:." \
-                --add-data "excel_export.py:." \
-                --hidden-import flask \
-                --hidden-import pandas \
-                --hidden-import openpyxl \
-                --hidden-import openpyxl.chart \
-                --hidden-import openpyxl.chart.label \
-                --hidden-import openpyxl.chart.marker \
-                --hidden-import openpyxl.chart.shapes \
-                --hidden-import openpyxl.styles \
-                --hidden-import openpyxl.utils \
-                --hidden-import pdfplumber \
-                --hidden-import requests \
-                --exclude-module tkinter \
-                --exclude-module matplotlib \
-                --exclude-module scipy \
-                --distpath dist \
-                --clean -y \
-                server.py
-              cd dist && tar czf BudgetAnalyzer-Linux.tar.gz BudgetAnalyzer/
-
-    runs-on: ${{ matrix.os }}
-
+  build-macos:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt pyinstaller
-
+        run: pip install -r requirements.txt pyinstaller
       - name: Build
-        shell: ${{ matrix.os == 'windows-latest' && 'pwsh' || 'bash' }}
-        run: ${{ matrix.build_cmd }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        run: |
+          pyinstaller \
+            --name BudgetAnalyzer \
+            --windowed \
+            --add-data "static:static" \
+            --add-data "rules.py:." \
+            --add-data "ollama_classify.py:." \
+            --add-data "parsers.py:." \
+            --add-data "excel_export.py:." \
+            --hidden-import flask \
+            --hidden-import pandas \
+            --hidden-import openpyxl \
+            --hidden-import openpyxl.chart \
+            --hidden-import openpyxl.chart.label \
+            --hidden-import openpyxl.chart.marker \
+            --hidden-import openpyxl.chart.shapes \
+            --hidden-import openpyxl.styles \
+            --hidden-import openpyxl.utils \
+            --hidden-import pdfplumber \
+            --hidden-import requests \
+            --exclude-module tkinter \
+            --exclude-module matplotlib \
+            --exclude-module scipy \
+            --distpath dist \
+            --clean -y \
+            server.py
+          cd dist && ditto -c -k --sequesterRsrc --keepParent BudgetAnalyzer.app BudgetAnalyzer-macOS.zip
+      - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: dist/*.${{ matrix.os == 'ubuntu-latest' && 'tar.gz' || 'zip' }}
+          name: BudgetAnalyzer-macOS
+          path: dist/BudgetAnalyzer-macOS.zip
 
-  release:
-    needs: build
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyinstaller
+      - name: Build
+        shell: pwsh
+        run: |
+          pyinstaller --name BudgetAnalyzer --windowed --add-data "static;static" --add-data "rules.py;." --add-data "ollama_classify.py;." --add-data "parsers.py;." --add-data "excel_export.py;." --hidden-import flask --hidden-import pandas --hidden-import openpyxl --hidden-import openpyxl.chart --hidden-import openpyxl.chart.label --hidden-import openpyxl.chart.marker --hidden-import openpyxl.chart.shapes --hidden-import openpyxl.styles --hidden-import openpyxl.utils --hidden-import pdfplumber --hidden-import requests --exclude-module tkinter --exclude-module matplotlib --exclude-module scipy --distpath dist --clean -y server.py
+          Compress-Archive -Path dist\BudgetAnalyzer -DestinationPath dist\BudgetAnalyzer-Windows.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BudgetAnalyzer-Windows
+          path: dist/BudgetAnalyzer-Windows.zip
+
+  build-linux:
     runs-on: ubuntu-latest
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyinstaller
+      - name: Build
+        run: |
+          pyinstaller \
+            --name BudgetAnalyzer \
+            --add-data "static:static" \
+            --add-data "rules.py:." \
+            --add-data "ollama_classify.py:." \
+            --add-data "parsers.py:." \
+            --add-data "excel_export.py:." \
+            --hidden-import flask \
+            --hidden-import pandas \
+            --hidden-import openpyxl \
+            --hidden-import openpyxl.chart \
+            --hidden-import openpyxl.chart.label \
+            --hidden-import openpyxl.chart.marker \
+            --hidden-import openpyxl.chart.shapes \
+            --hidden-import openpyxl.styles \
+            --hidden-import openpyxl.utils \
+            --hidden-import pdfplumber \
+            --hidden-import requests \
+            --exclude-module tkinter \
+            --exclude-module matplotlib \
+            --exclude-module scipy \
+            --distpath dist \
+            --clean -y \
+            server.py
+          cd dist && tar czf BudgetAnalyzer-Linux.tar.gz BudgetAnalyzer/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BudgetAnalyzer-Linux
+          path: dist/BudgetAnalyzer-Linux.tar.gz
+
+  release:
+    needs: [build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
-
-      - name: Create Release
+      - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/BudgetAnalyzer-macOS/*.zip
-            artifacts/BudgetAnalyzer-Windows/*.zip
-            artifacts/BudgetAnalyzer-Linux/*.tar.gz
-          generate_release_notes: true
+            artifacts/BudgetAnalyzer-macOS/BudgetAnalyzer-macOS.zip
+            artifacts/BudgetAnalyzer-Windows/BudgetAnalyzer-Windows.zip
+            artifacts/BudgetAnalyzer-Linux/BudgetAnalyzer-Linux.tar.gz
