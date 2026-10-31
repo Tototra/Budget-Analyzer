@@ -119,9 +119,22 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-      - name: Upload to Release
+
+      - name: Upload to Release (tag push)
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          files: |
+            artifacts/BudgetAnalyzer-macOS/BudgetAnalyzer-macOS.zip
+            artifacts/BudgetAnalyzer-Windows/BudgetAnalyzer-Windows.zip
+            artifacts/BudgetAnalyzer-Linux/BudgetAnalyzer-Linux.tar.gz
+
+      - name: Upload to Release (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: Budget Analyzer v1.0.0
           files: |
             artifacts/BudgetAnalyzer-macOS/BudgetAnalyzer-macOS.zip
             artifacts/BudgetAnalyzer-Windows/BudgetAnalyzer-Windows.zip
