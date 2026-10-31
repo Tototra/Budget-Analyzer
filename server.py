@@ -31,6 +31,25 @@ def index():
 
 # ─── API ──────────────────────────────────────────────────────────────────────
 
+@app.route("/api/health")
+def health():
+    """Vérifie si Ollama est joignable et qu'un modèle est disponible."""
+    import requests as req
+    result = {"ollama": False, "model": False, "model_name": None, "models": []}
+    try:
+        r = req.get("http://localhost:11434/api/tags", timeout=3)
+        if r.status_code == 200:
+            result["ollama"] = True
+            models = r.json().get("models", [])
+            result["models"] = [m["name"] for m in models]
+            if models:
+                result["model"] = True
+                result["model_name"] = models[0]["name"]
+    except Exception:
+        pass
+    return jsonify(result)
+
+
 @app.route("/api/analyze", methods=["POST"])
 def analyze():
     """Reçoit un ou plusieurs fichiers, renvoie les données catégorisées."""

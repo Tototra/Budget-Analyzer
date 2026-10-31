@@ -132,6 +132,22 @@ section{padding:100px 0}
 .download-card:hover .dl-btn{opacity:.9}
 .download-note{margin-top:24px;font-size:.82rem;color:var(--fg-dim)}
 
+/* ── Setup guide ── */
+.setup-guide{margin-top:4rem}
+.setup-steps{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:0}
+.setup-step{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--border)}
+.setup-step:last-child{border-bottom:none}
+.step-num{font-family:var(--font-display);font-size:1.8rem;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0;width:36px;text-align:center;line-height:1}
+.step-content h3{font-family:var(--font-display);font-weight:700;font-size:1rem;color:var(--fg-bright);margin-bottom:6px}
+.step-content p{font-size:.88rem;color:var(--fg-muted);line-height:1.6;margin-bottom:8px}
+.setup-link{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--gradient);color:#fff;font-weight:600;font-size:.85rem;margin:8px 0 12px;transition:opacity .2s}
+.setup-link:hover{opacity:.85}
+.setup-os-notes{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.os-note{font-size:.84rem;color:var(--fg-muted);line-height:1.5;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--border)}
+.os-note strong{color:var(--fg-bright);font-weight:600}
+.cmd{display:block;margin:8px 0;padding:10px 14px;border-radius:8px;background:rgba(0,0,0,.4);border:1px solid var(--border);color:var(--green);font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.82rem;user-select:all;cursor:text}
+.setup-hint{font-size:.8rem;color:var(--fg-dim);font-style:italic;margin-top:4px}
+
 /* ── Privacy ── */
 .privacy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
 .privacy-card{display:flex;gap:16px;padding:24px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card)}
@@ -377,7 +393,57 @@ section{padding:100px 0}
         </a>
       </div>
 
-      <p class="download-note">Prerequis : Python 3.10+ et Ollama avec un modele installe (llama3.2:3b recommande)</p>
+    </div>
+
+    <!-- Ollama setup guide -->
+    <div class="setup-guide reveal" id="installation">
+      <div class="section-label" style="margin-top:3rem">Installation</div>
+      <div class="section-title" style="text-align:center">Avant de lancer Budget Analyzer</div>
+      <p style="color:var(--fg-muted);max-width:520px;margin:8px auto 2rem;font-size:.92rem;text-align:center">L'application utilise un modele d'IA qui tourne sur ta machine pour classer les transactions ambigues. Il faut installer Ollama (gratuit, 2 minutes).</p>
+
+      <div class="setup-steps">
+        <div class="setup-step reveal reveal-delay-1">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3>Installer Ollama</h3>
+            <p>Telecharge et installe Ollama depuis le site officiel :</p>
+            <a href="https://ollama.ai/download" target="_blank" class="setup-link">
+              <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><path d="M10 3v10m0 0l-3.5-3.5m3.5 3.5l3.5-3.5M4 16h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              ollama.ai/download
+            </a>
+            <div class="setup-os-notes">
+              <div class="os-note">
+                <strong>macOS</strong> — Telecharge le .dmg, glisse dans Applications, lance Ollama. Une icone apparait dans la barre de menu.
+              </div>
+              <div class="os-note">
+                <strong>Windows</strong> — Telecharge le .exe, installe et lance. Ollama tourne en arriere-plan dans la barre des taches.
+              </div>
+              <div class="os-note">
+                <strong>Linux</strong> — Une seule commande :
+                <code class="cmd">curl -fsSL https://ollama.ai/install.sh | sh</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setup-step reveal reveal-delay-2">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Telecharger le modele</h3>
+            <p>Ouvre un terminal et lance cette commande (2 Go a telecharger, une seule fois) :</p>
+            <code class="cmd">ollama pull llama3.2:3b</code>
+            <p class="setup-hint">C'est un modele leger qui tourne sur n'importe quel ordinateur recent. Pas besoin de carte graphique.</p>
+          </div>
+        </div>
+
+        <div class="setup-step reveal reveal-delay-3">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>Lancer Budget Analyzer</h3>
+            <p>Assure-toi qu'Ollama tourne (l'icone est visible dans la barre de menu/taches), puis lance Budget Analyzer. L'application detecte automatiquement Ollama et t'indique si quelque chose manque.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
