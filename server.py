@@ -232,12 +232,36 @@ def export_excel():
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
+def start_server(port):
+    app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
 
-    def open_browser():
-        webbrowser.open(f"http://localhost:{port}")
+    try:
+        import webview
 
-    Timer(1.5, open_browser).start()
-    print(f"\n  💰 Budget Analyzer → http://localhost:{port}\n")
-    app.run(host="127.0.0.1", port=port, debug=False)
+        # Lance Flask dans un thread séparé
+        server_thread = Timer(0.5, start_server, args=[port])
+        server_thread.daemon = True
+        server_thread.start()
+
+        # Fenêtre native
+        webview.create_window(
+            "Budget Analyzer",
+            f"http://localhost:{port}",
+            width=1100,
+            height=750,
+            min_size=(800, 500),
+        )
+        webview.start()
+
+    except ImportError:
+        # Fallback : ouvre dans le navigateur si pywebview n'est pas installé
+        def open_browser():
+            webbrowser.open(f"http://localhost:{port}")
+
+        Timer(1.5, open_browser).start()
+        print(f"\n  Budget Analyzer -> http://localhost:{port}\n")
+        app.run(host="127.0.0.1", port=port, debug=False)
