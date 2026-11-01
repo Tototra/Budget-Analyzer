@@ -924,21 +924,22 @@ body {
   /* ── Export ──────────────────────────────────────── */
   exportBtn.addEventListener('click', async () => {
     exportBtn.disabled = true;
+    exportBtn.textContent = 'Export en cours...';
     const fd = new FormData();
     files.forEach(f => fd.append('files', f));
     try {
-      const res = await fetch('/api/export', { method: 'POST', body: fd });
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'budget_analyzer.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      // Essaie d'abord le téléchargement blob (navigateur classique)
+      const res = await fetch('/api/export-save', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.path) {
+        exportBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Fichier enregistré sur le Bureau';
+        setTimeout(() => {
+          exportBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Télécharger le fichier Excel';
+        }, 3000);
+      }
     } catch (err) {
       console.error(err);
+      exportBtn.textContent = 'Erreur';
     }
     exportBtn.disabled = false;
   });
