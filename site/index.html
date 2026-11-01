@@ -373,19 +373,19 @@ section{padding:100px 0}
       <p style="color:var(--fg-muted);max-width:460px;margin:8px auto 0;font-size:.92rem">Lance l'application et commence a analyser tes releves.</p>
 
       <div class="download-grid">
-        <a href="https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer-macOS.zip" class="download-card" id="dl-mac">
+        <a href="https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer-macOS.dmg" class="download-card" id="dl-mac">
           <svg viewBox="0 0 24 24" fill="none"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.81-1.31.05-2.3-1.32-3.14-2.53C4.25 16.76 3 12.76 4.79 10.03A4.5 4.5 0 018.6 7.82c1.3-.03 2.52.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M15 2c.2 1.07-.33 2.17-1.04 2.95-.71.79-1.87 1.4-3.01 1.32-.17-1.06.39-2.17 1.07-2.87C12.73 2.62 13.93 2.07 15 2z" stroke="currentColor" stroke-width="1.5"/></svg>
           <div class="os-name">macOS</div>
           <div class="os-sub">Apple Silicon et Intel</div>
           <span class="dl-btn">Telecharger</span>
         </a>
-        <a href="https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer-Windows.zip" class="download-card" id="dl-win">
+        <a href="https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer.exe" class="download-card" id="dl-win">
           <svg viewBox="0 0 24 24" fill="none"><path d="M3 5.548l7.16-.987v6.903H3V5.548zM3 12.536h7.16v6.948L3 18.497v-5.961zM11.233 4.44L21 3v8.464h-9.767V4.44zM11.233 12.536H21V21l-9.767-1.388v-7.076z" stroke="currentColor" stroke-width="1.4"/></svg>
           <div class="os-name">Windows</div>
           <div class="os-sub">Windows 10 / 11</div>
           <span class="dl-btn">Telecharger</span>
         </a>
-        <a href="https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer-Linux.tar.gz" class="download-card" id="dl-linux">
+        <a href="https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer" class="download-card" id="dl-linux">
           <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C8.5 2 6 5 6 8c0 2-1 3-2 4s-1 3 0 4 3 1 4 0 2-2 4-2 3 1 4 2 3 1 4 0 1-3 0-4-2-2-2-4c0-3-2.5-6-6-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="9.5" cy="8" r="1" fill="currentColor"/><circle cx="14.5" cy="8" r="1" fill="currentColor"/><path d="M10 11.5c.5.8 1.2 1 2 1s1.5-.2 2-1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
           <div class="os-name">Linux</div>
           <div class="os-sub">Ubuntu, Fedora, Arch...</div>
@@ -541,9 +541,9 @@ if (mockup) mockupObs.observe(mockup);
   else if (ua.includes('win')) os = 'win';
 
   const urls = {
-    mac: 'https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer-macOS.zip',
-    win: 'https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer-Windows.zip',
-    linux: 'https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer-Linux.tar.gz'
+    mac: 'https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer-macOS.dmg',
+    win: 'https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer.exe',
+    linux: 'https://github.com/Tototra/Budget-Analyzer/releases/latest/download/BudgetAnalyzer'
   };
   const names = { mac: 'macOS', win: 'Windows', linux: 'Linux' };
 

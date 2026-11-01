@@ -19,7 +19,7 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt pyinstaller
-      - name: Build
+      - name: Build .app
         run: |
           pyinstaller \
             --name BudgetAnalyzer \
@@ -47,11 +47,16 @@ jobs:
             --distpath dist \
             --clean -y \
             server.py
-          cd dist && ditto -c -k --sequesterRsrc --keepParent BudgetAnalyzer.app BudgetAnalyzer-macOS.zip
+      - name: Create .dmg
+        run: |
+          mkdir -p dmg_content
+          cp -R dist/BudgetAnalyzer.app dmg_content/
+          ln -s /Applications dmg_content/Applications
+          hdiutil create -volname "Budget Analyzer" -srcfolder dmg_content -ov -format UDZO dist/BudgetAnalyzer-macOS.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: BudgetAnalyzer-macOS
-          path: dist/BudgetAnalyzer-macOS.zip
+          path: dist/BudgetAnalyzer-macOS.dmg
 
   build-windows:
     runs-on: windows-latest
@@ -62,15 +67,14 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt pyinstaller
-      - name: Build
+      - name: Build single .exe
         shell: pwsh
         run: |
-          pyinstaller --name BudgetAnalyzer --windowed --add-data "static;static" --add-data "rules.py;." --add-data "ollama_classify.py;." --add-data "parsers.py;." --add-data "excel_export.py;." --hidden-import flask --hidden-import pandas --hidden-import openpyxl --hidden-import openpyxl.chart --hidden-import openpyxl.chart.label --hidden-import openpyxl.chart.marker --hidden-import openpyxl.chart.shapes --hidden-import openpyxl.styles --hidden-import openpyxl.utils --hidden-import pdfplumber --hidden-import requests --hidden-import webview --hidden-import clr --exclude-module tkinter --exclude-module matplotlib --exclude-module scipy --distpath dist --clean -y server.py
-          Compress-Archive -Path dist\BudgetAnalyzer -DestinationPath dist\BudgetAnalyzer-Windows.zip
+          pyinstaller --name BudgetAnalyzer --onefile --windowed --add-data "static;static" --add-data "rules.py;." --add-data "ollama_classify.py;." --add-data "parsers.py;." --add-data "excel_export.py;." --hidden-import flask --hidden-import pandas --hidden-import openpyxl --hidden-import openpyxl.chart --hidden-import openpyxl.chart.label --hidden-import openpyxl.chart.marker --hidden-import openpyxl.chart.shapes --hidden-import openpyxl.styles --hidden-import openpyxl.utils --hidden-import pdfplumber --hidden-import requests --hidden-import webview --hidden-import clr --exclude-module tkinter --exclude-module matplotlib --exclude-module scipy --distpath dist --clean -y server.py
       - uses: actions/upload-artifact@v4
         with:
           name: BudgetAnalyzer-Windows
-          path: dist/BudgetAnalyzer-Windows.zip
+          path: dist/BudgetAnalyzer.exe
 
   build-linux:
     runs-on: ubuntu-latest
@@ -89,6 +93,7 @@ jobs:
         run: |
           pyinstaller \
             --name BudgetAnalyzer \
+            --onefile \
             --add-data "static:static" \
             --add-data "rules.py:." \
             --add-data "ollama_classify.py:." \
@@ -112,11 +117,10 @@ jobs:
             --distpath dist \
             --clean -y \
             server.py
-          cd dist && tar czf BudgetAnalyzer-Linux.tar.gz BudgetAnalyzer/
       - uses: actions/upload-artifact@v4
         with:
           name: BudgetAnalyzer-Linux
-          path: dist/BudgetAnalyzer-Linux.tar.gz
+          path: dist/BudgetAnalyzer
 
   release:
     needs: [build-macos, build-windows, build-linux]
@@ -131,9 +135,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/BudgetAnalyzer-macOS/BudgetAnalyzer-macOS.zip
-            artifacts/BudgetAnalyzer-Windows/BudgetAnalyzer-Windows.zip
-            artifacts/BudgetAnalyzer-Linux/BudgetAnalyzer-Linux.tar.gz
+            artifacts/BudgetAnalyzer-macOS/BudgetAnalyzer-macOS.dmg
+            artifacts/BudgetAnalyzer-Windows/BudgetAnalyzer.exe
+            artifacts/BudgetAnalyzer-Linux/BudgetAnalyzer
 
       - name: Upload to Release (manual dispatch)
         if: github.event_name == 'workflow_dispatch'
@@ -142,6 +146,6 @@ jobs:
           tag_name: v1.0.0
           name: Budget Analyzer v1.0.0
           files: |
-            artifacts/BudgetAnalyzer-macOS/BudgetAnalyzer-macOS.zip
-            artifacts/BudgetAnalyzer-Windows/BudgetAnalyzer-Windows.zip
-            artifacts/BudgetAnalyzer-Linux/BudgetAnalyzer-Linux.tar.gz
+            artifacts/BudgetAnalyzer-macOS/BudgetAnalyzer-macOS.dmg
+            artifacts/BudgetAnalyzer-Windows/BudgetAnalyzer.exe
+            artifacts/BudgetAnalyzer-Linux/BudgetAnalyzer
