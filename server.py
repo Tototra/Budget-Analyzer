@@ -230,6 +230,82 @@ def export_excel():
                          mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
+@app.route("/api/export-save", methods=["POST"])
+def export_save():
+    """Comme /api/export mais sauvegarde le fichier sur le Bureau et retourne le chemin.
+    Utilisé quand pywebview bloque les téléchargements blob."""
+    files_list = request.files.getlist("files")
+    all_dfs = []
+    for f in files_list:
+        try:
+            if f.filename.lower().endswith(".pdf"):
+                with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                    f.save(tmp.name)
+                    df = parse_file(tmp.name, f.filename)
+                    os.unlink(tmp.name)
+            else:
+                df = parse_file(f.stream, f.filename)
+            all_dfs.append(df)
+        except Exception:
+            continue
+
+    if not all_dfs:
+        return jsonify({"error": "Aucun fichier exploitable"}), 400
+
+    df = pd.concat(all_dfs, ignore_index=True)
+
+    cache = {}
+    categories = []
+    methodes = []
+    for row in df.itertuples(index=False):
+        lib = row.Libellé
+        if lib in cache:
+            cat, meth = cache[lib]
+        else:
+            cat = classify_by_rules(lib)
+            if cat is not None:
+                meth = "règle"
+            else:
+                cat = classify_with_ai(lib, row.Montant)
+                meth = "IA locale"
+            cache[lib] = (cat, meth)
+        categories.append(cat)
+        methodes.append(meth)
+
+    df["Catégorie"] = categories
+    df["Méthode"] = methodes
+    df["Mois"] = pd.to_datetime(df["Date"], errors="coerce", dayfirst=True).dt.strftime("%Y-%m")
+
+    depenses = df[~df["Catégorie"].isin(CATEGORIE_EXCLUE_DES_DEPENSES)].copy()
+    depenses["Dépense"] = depenses["Montant"].apply(lambda x: -x if x < 0 else 0)
+
+    synthese = (
+        depenses.groupby("Catégorie")["Dépense"].sum()
+        .sort_values(ascending=False).reset_index()
+    )
+    synthese.columns = ["Catégorie", "Total dépensé"]
+    synthese = synthese[synthese["Total dépensé"] > 0]
+
+    pivot = depenses.pivot_table(
+        index="Mois", columns="Catégorie", values="Dépense", aggfunc="sum", fill_value=0
+    ).sort_index()
+
+    total_dep = float(depenses["Dépense"].sum())
+    total_rev = float(df[df["Montant"] > 0]["Montant"].sum())
+
+    # Sauvegarde sur le Bureau
+    desktop = os.path.expanduser("~/Desktop")
+    output_path = os.path.join(desktop, "budget_analyzer.xlsx")
+    # Si le fichier existe déjà, ajoute un numéro
+    counter = 1
+    while os.path.exists(output_path):
+        output_path = os.path.join(desktop, f"budget_analyzer_{counter}.xlsx")
+        counter += 1
+
+    exporter(output_path, df, synthese, pivot, total_dep, total_rev)
+    return jsonify({"path": output_path, "filename": os.path.basename(output_path)})
+
+
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 def start_server(port):
