@@ -16,7 +16,7 @@ from flask import Flask, request, jsonify, send_from_directory, send_file
 
 from parsers import parse_file
 from rules import CATEGORIE_EXCLUE_DES_DEPENSES, classify_by_rules
-from ollama_classify import classify_with_ai
+from ollama_classify import classify_with_ai, check_ollama, is_ollama_available, reset_ollama_check
 from excel_export import exporter, COULEURS_CATEGORIES
 
 app = Flask(__name__, static_folder="static", static_url_path="")
@@ -29,24 +29,52 @@ def index():
     return send_from_directory("static", "index.html")
 
 
+# ─── Helpers ─────────────────────────────────────────────────────────────────
+
+def _categorize_df(df):
+    """Catégorise un DataFrame de transactions. Retourne le df enrichi + stats."""
+    cache = {}
+    categories = []
+    methodes = []
+    unclassified = 0
+    for row in df.itertuples(index=False):
+        lib = row.Libellé
+        if lib in cache:
+            cat, meth = cache[lib]
+        else:
+            cat = classify_by_rules(lib)
+            if cat is not None:
+                meth = "règle"
+            else:
+                cat, meth = classify_with_ai(lib, row.Montant)
+            cache[lib] = (cat, meth)
+        categories.append(cat)
+        methodes.append(meth)
+        if meth == "non classé":
+            unclassified += 1
+    df = df.copy()
+    df["Catégorie"] = categories
+    df["Méthode"] = methodes
+    df._unclassified_count = unclassified
+    return df
+
+
 # ─── API ──────────────────────────────────────────────────────────────────────
 
 @app.route("/api/health")
 def health():
     """Vérifie si Ollama est joignable et qu'un modèle est disponible."""
-    import requests as req
-    result = {"ollama": False, "model": False, "model_name": None, "models": []}
-    try:
-        r = req.get("http://localhost:11434/api/tags", timeout=3)
-        if r.status_code == 200:
-            result["ollama"] = True
-            models = r.json().get("models", [])
-            result["models"] = [m["name"] for m in models]
-            if models:
-                result["model"] = True
-                result["model_name"] = models[0]["name"]
-    except Exception:
-        pass
+    result = check_ollama()
+    result["mode"] = "ia" if result["ollama"] and result["model"] else "regles"
+    return jsonify(result)
+
+
+@app.route("/api/recheck-ollama", methods=["POST"])
+def recheck():
+    """Force un re-check d'Ollama (après installation par l'utilisateur)."""
+    reset_ollama_check()
+    result = check_ollama()
+    result["mode"] = "ia" if result["ollama"] and result["model"] else "regles"
     return jsonify(result)
 
 
@@ -77,22 +105,8 @@ def analyze():
         return jsonify({"error": "Aucun fichier exploitable", "details": errors}), 400
 
     df = pd.concat(all_dfs, ignore_index=True)
-
-    # Catégoriser
-    cache = {}
-    categories = []
-    for row in df.itertuples(index=False):
-        lib = row.Libellé
-        if lib in cache:
-            categories.append(cache[lib])
-        else:
-            cat = classify_by_rules(lib)
-            if cat is None:
-                cat = classify_with_ai(lib, row.Montant)
-            cache[lib] = cat
-            categories.append(cat)
-
-    df["Catégorie"] = categories
+    df = _categorize_df(df)
+    unclassified_count = getattr(df, '_unclassified_count', 0)
 
     # Calculs
     depenses = df[~df["Catégorie"].isin(CATEGORIE_EXCLUE_DES_DEPENSES)].copy()
@@ -159,6 +173,8 @@ def analyze():
         },
         "groupes": groupes,
         "errors": errors,
+        "mode": "ia" if is_ollama_available() else "regles",
+        "unclassified": unclassified_count,
     })
 
 
@@ -184,27 +200,7 @@ def export_excel():
         return jsonify({"error": "Aucun fichier exploitable"}), 400
 
     df = pd.concat(all_dfs, ignore_index=True)
-
-    cache = {}
-    categories = []
-    methodes = []
-    for row in df.itertuples(index=False):
-        lib = row.Libellé
-        if lib in cache:
-            cat, meth = cache[lib]
-        else:
-            cat = classify_by_rules(lib)
-            if cat is not None:
-                meth = "règle"
-            else:
-                cat = classify_with_ai(lib, row.Montant)
-                meth = "IA locale"
-            cache[lib] = (cat, meth)
-        categories.append(cat)
-        methodes.append(meth)
-
-    df["Catégorie"] = categories
-    df["Méthode"] = methodes
+    df = _categorize_df(df)
     df["Mois"] = pd.to_datetime(df["Date"], errors="coerce", dayfirst=True).dt.strftime("%Y-%m")
 
     depenses = df[~df["Catégorie"].isin(CATEGORIE_EXCLUE_DES_DEPENSES)].copy()
@@ -253,27 +249,7 @@ def export_save():
         return jsonify({"error": "Aucun fichier exploitable"}), 400
 
     df = pd.concat(all_dfs, ignore_index=True)
-
-    cache = {}
-    categories = []
-    methodes = []
-    for row in df.itertuples(index=False):
-        lib = row.Libellé
-        if lib in cache:
-            cat, meth = cache[lib]
-        else:
-            cat = classify_by_rules(lib)
-            if cat is not None:
-                meth = "règle"
-            else:
-                cat = classify_with_ai(lib, row.Montant)
-                meth = "IA locale"
-            cache[lib] = (cat, meth)
-        categories.append(cat)
-        methodes.append(meth)
-
-    df["Catégorie"] = categories
-    df["Méthode"] = methodes
+    df = _categorize_df(df)
     df["Mois"] = pd.to_datetime(df["Date"], errors="coerce", dayfirst=True).dt.strftime("%Y-%m")
 
     depenses = df[~df["Catégorie"].isin(CATEGORIE_EXCLUE_DES_DEPENSES)].copy()

@@ -64,73 +64,76 @@ body {
   padding: 2.5rem 1.5rem 4rem;
 }
 
-/* ── Ollama banner ──────────────────────────────────── */
-.ollama-banner {
-  margin-bottom: 1.5rem;
-  animation: fadeSlideUp .4s ease both;
-}
-.ollama-banner-inner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  border-radius: 12px;
-  background: rgba(248,113,113,.08);
-  border: 1px solid rgba(248,113,113,.2);
-}
-.ollama-banner-inner svg { color: #f87171; flex-shrink: 0; }
-.ollama-banner-text { flex: 1; font-size: .88rem; color: #9CA3AF; }
-.ollama-banner-text strong { color: #f87171; display: block; font-size: .92rem; margin-bottom: 2px; }
-.ollama-banner-btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  color: #fff;
-  font-weight: 600;
-  font-size: .82rem;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: opacity .2s;
-}
-.ollama-banner-btn:hover { opacity: .85; }
-.ollama-banner.ok .ollama-banner-inner {
-  background: rgba(52,211,153,.08);
-  border-color: rgba(52,211,153,.2);
-}
-.ollama-banner.ok .ollama-banner-inner svg { color: #34d399; }
-.ollama-banner.ok .ollama-banner-text strong { color: #34d399; }
-.ollama-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
-  padding: 16px 20px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.06);
-}
-.ollama-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  font-size: .85rem;
-  color: #9CA3AF;
-}
-.ollama-step strong { color: #e8ecf1; display: block; margin-bottom: 2px; }
-.ollama-step p { margin: 0; line-height: 1.5; }
-.ollama-step-num {
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  color: #fff;
-  font-weight: 700;
-  font-size: .75rem;
+/* ── Setup screen ──────────────────────────────────── */
+.setup-screen {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
+  min-height: 60vh;
+  animation: fadeSlideUp .5s ease both;
 }
+.setup-card {
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+}
+.setup-card h2 {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1rem 0 .5rem;
+  color: #1A1D23;
+}
+.setup-sub { color: #6B7280; font-size: .9rem; line-height: 1.6; margin-bottom: 1.5rem; }
+.setup-options { display: flex; flex-direction: column; gap: .75rem; text-align: left; }
+.setup-option {
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1.5px solid #E5E7EB;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s;
+}
+.setup-option:hover { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.08); }
+.setup-option-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.setup-option-header strong { font-size: .92rem; }
+.setup-option p { color: #6B7280; font-size: .82rem; margin: 0; line-height: 1.5; }
+.setup-tag {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.setup-install-steps { margin-top: 12px; padding-top: 12px; border-top: 1px solid #F3F4F6; }
+.setup-step-row { display: flex; align-items: flex-start; gap: 8px; font-size: .84rem; color: #4B5563; margin-bottom: 8px; line-height: 1.5; }
+.step-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+/* ── Mode banner ──────────────────────────────────── */
+.mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  font-size: .82rem;
+  color: #92400E;
+  margin-bottom: 1rem;
+  animation: fadeSlideUp .3s ease both;
+}
+.mode-banner svg { color: #D97706; flex-shrink: 0; }
+.mode-banner span { flex: 1; }
 
 /* ── Upload zone ─────────────────────────────────────── */
 .upload-section {
@@ -624,39 +627,57 @@ body {
 </header>
 
 <main class="main">
-  <!-- Ollama check banner -->
-  <div class="ollama-banner" id="ollamaBanner" hidden>
-    <div class="ollama-banner-inner">
-      <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 9v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <div class="ollama-banner-text">
-        <strong id="ollamaTitle">Ollama non detecte</strong>
-        <span id="ollamaMsg">L'application a besoin d'Ollama pour classer les transactions.</span>
+  <!-- Setup screen (shown on first launch if Ollama not detected) -->
+  <div class="setup-screen" id="setupScreen" hidden>
+    <div class="setup-card">
+      <svg width="40" height="40" viewBox="0 0 32 32" fill="none"><defs><linearGradient id="setup-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs><rect x="2" y="2" width="28" height="28" rx="7" fill="url(#setup-g)"/><rect x="7.5" y="17" width="4" height="9" rx="1.5" fill="#fff" opacity=".95"/><rect x="14" y="12" width="4" height="14" rx="1.5" fill="#fff"/><rect x="20.5" y="7" width="4" height="19" rx="1.5" fill="#fff" opacity=".95"/></svg>
+      <h2>Bienvenue dans Budget Analyzer</h2>
+      <p class="setup-sub">Pour une classification plus pr&eacute;cise, tu peux installer Ollama &mdash; un mod&egrave;le d'IA qui tourne sur ta machine. Sinon, l'app utilise des r&egrave;gles par mots-cl&eacute;s (80% des transactions sont class&eacute;es correctement).</p>
+
+      <div class="setup-options">
+        <div class="setup-option" id="setupWithOllama">
+          <div class="setup-option-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="#3b82f6" stroke-width="1.5"/><path d="M8 12l3 3 5-5" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <strong>Installer Ollama</strong>
+            <span class="setup-tag">Recommand&eacute;</span>
+          </div>
+          <p>Classification pr&eacute;cise des transactions ambig&uuml;es gr&acirc;ce &agrave; l'IA locale.</p>
+          <div class="setup-install-steps" id="installSteps" hidden>
+            <div class="setup-step-row">
+              <span class="step-dot"></span>
+              <span>T&eacute;l&eacute;charge et installe <a href="https://ollama.ai/download" target="_blank" style="color:#60a5fa">ollama.ai/download</a></span>
+            </div>
+            <div class="setup-step-row">
+              <span class="step-dot"></span>
+              <span>Ouvre un terminal et lance : <code style="background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;color:#34d399;font-size:.82rem">ollama pull llama3.2:3b</code></span>
+            </div>
+            <div class="setup-step-row">
+              <span class="step-dot"></span>
+              <span>Clique ci-dessous pour v&eacute;rifier</span>
+            </div>
+            <button class="btn btn-primary" id="recheckBtn" style="margin-top:12px;width:100%">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+              V&eacute;rifier l'installation
+            </button>
+          </div>
+        </div>
+
+        <div class="setup-option" id="setupWithout">
+          <div class="setup-option-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#6B7280" stroke-width="1.5"/><polyline points="13 2 13 8 19 8" stroke="#6B7280" stroke-width="1.5"/></svg>
+            <strong>Continuer sans IA</strong>
+          </div>
+          <p>Classification par mots-cl&eacute;s uniquement. Les transactions non reconnues iront dans &laquo; Autres &raquo;.</p>
+        </div>
       </div>
-      <a href="https://ollama.ai/download" target="_blank" class="ollama-banner-btn" id="ollamaAction">Installer Ollama</a>
     </div>
-    <div class="ollama-steps" id="ollamaSteps">
-      <div class="ollama-step">
-        <span class="ollama-step-num">1</span>
-        <div>
-          <strong>Installer Ollama</strong>
-          <p>Telecharge depuis <a href="https://ollama.ai/download" target="_blank" style="color:#60a5fa;text-decoration:underline">ollama.ai/download</a> et lance-le.</p>
-        </div>
-      </div>
-      <div class="ollama-step">
-        <span class="ollama-step-num">2</span>
-        <div>
-          <strong>Telecharger le modele</strong>
-          <p>Ouvre un terminal et lance : <code style="background:rgba(0,0,0,.3);padding:2px 8px;border-radius:4px;color:#34d399">ollama pull llama3.2:3b</code></p>
-        </div>
-      </div>
-      <div class="ollama-step">
-        <span class="ollama-step-num">3</span>
-        <div>
-          <strong>Relance cette page</strong>
-          <p>Une fois Ollama lance et le modele telecharge, rafraichis cette page.</p>
-        </div>
-      </div>
-    </div>
+  </div>
+
+  <!-- Mode indicator (shown when running without Ollama) -->
+  <div class="mode-banner" id="modeBanner" hidden>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/></svg>
+    <span>Mode r&egrave;gles uniquement &mdash; les transactions non reconnues sont dans &laquo; Autres &raquo;.</span>
+    <a href="#" id="setupOllamaLink" style="color:#60a5fa;white-space:nowrap">Installer Ollama</a>
   </div>
 
   <!-- Upload section -->
@@ -749,37 +770,74 @@ body {
 (function() {
   'use strict';
 
-  /* ── Ollama health check ─────────────────────────── */
+  /* ── Ollama setup ─────────────────────────────────── */
+  const setupScreen = document.getElementById('setupScreen');
+  const uploadSection = document.getElementById('uploadSection');
+  const modeBanner = document.getElementById('modeBanner');
+  let ollamaAvailable = false;
+
+  function showApp() {
+    setupScreen.hidden = true;
+    uploadSection.style.display = '';
+    if (!ollamaAvailable) modeBanner.hidden = false;
+  }
+
   (async function checkOllama() {
-    const banner = document.getElementById('ollamaBanner');
-    const title = document.getElementById('ollamaTitle');
-    const msg = document.getElementById('ollamaMsg');
-    const action = document.getElementById('ollamaAction');
-    const steps = document.getElementById('ollamaSteps');
     try {
       const r = await fetch('/api/health');
       const data = await r.json();
-      if (data.ollama && data.model) {
-        banner.hidden = true;
-      } else if (data.ollama && !data.model) {
-        banner.hidden = false;
-        banner.classList.remove('ok');
-        title.textContent = 'Aucun modele detecte';
-        msg.textContent = 'Ollama tourne mais aucun modele n\'est installe.';
-        action.textContent = 'Voir comment faire';
-        action.href = '#';
-        action.onclick = function(e) { e.preventDefault(); steps.hidden = !steps.hidden; };
-        steps.querySelector('.ollama-step:first-child').hidden = true;
-        steps.hidden = false;
+      ollamaAvailable = data.mode === 'ia';
+      if (ollamaAvailable) {
+        // Ollama OK, affiche directement l'app
+        showApp();
       } else {
-        banner.hidden = false;
-        steps.hidden = false;
+        // Pas d'Ollama : affiche l'ecran de setup
+        setupScreen.hidden = false;
+        uploadSection.style.display = 'none';
       }
     } catch(e) {
-      banner.hidden = false;
-      steps.hidden = false;
+      setupScreen.hidden = false;
+      uploadSection.style.display = 'none';
     }
   })();
+
+  // Option "Installer Ollama" : montre les etapes
+  document.getElementById('setupWithOllama').addEventListener('click', () => {
+    document.getElementById('installSteps').hidden = false;
+  });
+
+  // Option "Continuer sans" : passe a l'app
+  document.getElementById('setupWithout').addEventListener('click', showApp);
+
+  // Bouton "Verifier l'installation"
+  document.getElementById('recheckBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('recheckBtn');
+    btn.disabled = true;
+    btn.textContent = 'Verification...';
+    try {
+      const r = await fetch('/api/recheck-ollama', { method: 'POST' });
+      const data = await r.json();
+      if (data.mode === 'ia') {
+        ollamaAvailable = true;
+        showApp();
+      } else {
+        btn.textContent = 'Ollama non detecte. Reessayer';
+        btn.disabled = false;
+      }
+    } catch(e) {
+      btn.textContent = 'Erreur. Reessayer';
+      btn.disabled = false;
+    }
+  });
+
+  // Lien "Installer Ollama" depuis le banner
+  document.getElementById('setupOllamaLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    uploadSection.style.display = 'none';
+    modeBanner.hidden = true;
+    setupScreen.hidden = false;
+    document.getElementById('installSteps').hidden = false;
+  });
 
   /* ── State ───────────────────────────────────────── */
   let files = [];
