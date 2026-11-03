@@ -288,19 +288,40 @@ def start_server(port):
     app.run(host="127.0.0.1", port=port, debug=False, use_reloader=False)
 
 
+def wait_for_server(port, timeout=10):
+    """Attend que Flask soit prêt avant d'ouvrir la fenêtre."""
+    import time
+    import urllib.request
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            urllib.request.urlopen(f"http://localhost:{port}/api/health", timeout=1)
+            return True
+        except Exception:
+            time.sleep(0.2)
+    return False
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
+    import threading
 
-    try:
-        import webview
+    import sys
 
-        # Lance Flask dans un thread séparé
-        server_thread = Timer(0.5, start_server, args=[port])
-        server_thread.daemon = True
+    use_webview = False
+    if sys.platform != "darwin":
+        # pywebview fonctionne bien sur Windows/Linux, pas sur macOS (Cocoa bloque Flask)
+        try:
+            import webview
+            use_webview = True
+        except ImportError:
+            pass
+
+    if use_webview:
+        server_thread = threading.Thread(target=start_server, args=[port], daemon=True)
         server_thread.start()
-
-        # Fenêtre native
-        webview.create_window(
+        wait_for_server(port)
+        window = webview.create_window(
             "Budget Analyzer",
             f"http://localhost:{port}",
             width=1100,
@@ -308,8 +329,7 @@ if __name__ == "__main__":
             min_size=(800, 500),
         )
         webview.start()
-
-    except ImportError:
+    else:
         # Fallback : ouvre dans le navigateur si pywebview n'est pas installé
         def open_browser():
             webbrowser.open(f"http://localhost:{port}")
