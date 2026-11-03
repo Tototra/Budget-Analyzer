@@ -24,6 +24,7 @@ jobs:
           pyinstaller \
             --name BudgetAnalyzer \
             --windowed \
+            --icon static/icon.icns \
             --add-data "static:static" \
             --add-data "rules.py:." \
             --add-data "ollama_classify.py:." \
@@ -70,7 +71,7 @@ jobs:
       - name: Build single .exe
         shell: pwsh
         run: |
-          pyinstaller --name BudgetAnalyzer --onefile --windowed --add-data "static;static" --add-data "rules.py;." --add-data "ollama_classify.py;." --add-data "parsers.py;." --add-data "excel_export.py;." --hidden-import flask --hidden-import pandas --hidden-import openpyxl --hidden-import openpyxl.chart --hidden-import openpyxl.chart.label --hidden-import openpyxl.chart.marker --hidden-import openpyxl.chart.shapes --hidden-import openpyxl.styles --hidden-import openpyxl.utils --hidden-import pdfplumber --hidden-import requests --hidden-import webview --hidden-import clr --exclude-module tkinter --exclude-module matplotlib --exclude-module scipy --distpath dist --clean -y server.py
+          pyinstaller --name BudgetAnalyzer --onefile --windowed --icon static/icon.ico --add-data "static;static" --add-data "rules.py;." --add-data "ollama_classify.py;." --add-data "parsers.py;." --add-data "excel_export.py;." --hidden-import flask --hidden-import pandas --hidden-import openpyxl --hidden-import openpyxl.chart --hidden-import openpyxl.chart.label --hidden-import openpyxl.chart.marker --hidden-import openpyxl.chart.shapes --hidden-import openpyxl.styles --hidden-import openpyxl.utils --hidden-import pdfplumber --hidden-import requests --hidden-import webview --hidden-import clr --exclude-module tkinter --exclude-module matplotlib --exclude-module scipy --distpath dist --clean -y server.py
       - uses: actions/upload-artifact@v4
         with:
           name: BudgetAnalyzer-Windows
